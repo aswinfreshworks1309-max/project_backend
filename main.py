@@ -1,5 +1,10 @@
 # main.py (root)
 from fastapi import FastAPI
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 from app.database import Base, engine
 from app.routers import router as api_router
 

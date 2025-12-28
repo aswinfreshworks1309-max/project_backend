@@ -4,3 +4,6 @@ SQLAlchemy
 psycopg2-binary
 pydantic
 python-dotenv
+passlib[bcrypt]
+python-jose[cryptography]
+argon2-cffi
