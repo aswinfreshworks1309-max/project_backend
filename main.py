@@ -18,9 +18,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Bus Ticket Booking API")
 
 
-@app.get("/")
-def root():
-    return {"message": "Backend is running successfully"}
+
 
 
 from fastapi.middleware.cors import CORSMiddleware
