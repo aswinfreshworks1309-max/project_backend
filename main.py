@@ -11,7 +11,7 @@ from app.database import Base, engine
 from app.routers import router as api_router
 
 # create tables (dev only)
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 
 
