@@ -1,6 +1,8 @@
 # main.py (root)
 from fastapi import FastAPI
 from dotenv import load_dotenv
+from app.database import SessionLocal
+from sqlalchemy import text
 import os
 
 load_dotenv()
@@ -11,7 +13,17 @@ from app.routers import router as api_router
 # create tables (dev only)
 Base.metadata.create_all(bind=engine)
 
+
+
 app = FastAPI(title="Bus Ticket Booking API")
+
+
+@app.get("/aswin")
+def read_root():
+    db = SessionLocal()
+    result = db.execute(text("SELECT 1"))
+    db.close()
+    return {"message": "Database connected successfully"}
 
 from fastapi.middleware.cors import CORSMiddleware
 
