@@ -3,12 +3,26 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 from app.database import Base, engine
 from app.routers import router as api_router
+import os
 
-# create tables (dev only)
-if engine is not None:
-    Base.metadata.create_all(bind=engine)
+# NOTE: creating tables at import time can cause serverless startup to attempt
+# a DB connection and crash if the network is unreachable. Only create tables
+# when explicitly requested (e.g. local development) by setting
+# CREATE_TABLES=1 in the environment.
+
+def create_tables_if_enabled():
+    if os.getenv("CREATE_TABLES") == "1" and engine is not None:
+        Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(title="Bus Ticket Booking API")
+
+
+@app.on_event("startup")
+def _on_startup():
+    # Only create tables when explicitly enabled to avoid making outbound
+    # DB connections during serverless cold starts.
+    create_tables_if_enabled()
 
 @app.get("/")
 def root():
