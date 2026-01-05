@@ -5,6 +5,8 @@ from app.database import Base, engine
 from app.routers import router as api_router
 import os
  
+from app import models
+
 app = FastAPI(title="Bus Ticket Booking API")
 
 
@@ -12,7 +14,7 @@ app = FastAPI(title="Bus Ticket Booking API")
 def root():
     return {"message": "Bus Ticket Booking API is up"}
 
-@app.get("/api/init-db")
+@app.get("/init-db")
 def init_db():
     try:
         from app.database import Base, engine
@@ -33,6 +35,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router)
 
 
