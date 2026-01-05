@@ -13,6 +13,13 @@ app = FastAPI(title="Bus Ticket Booking API")
 
 @app.get("/")
 def root():
+    db_url = os.getenv("DATABASE_URL", "")
+    if "db.unyrqhgrzialltsdubow.supabase.co" in db_url:
+        return {
+            "status": "CRITICAL_ERROR",
+            "message": "Your backend is still using the WRONG database host. You MUST update DATABASE_URL in the Vercel Dashboard to use the 'pooler.supabase.com' host.",
+            "current_host_detected": db_url.split("@")[-1] if "@" in db_url else "Hidden"
+        }
     return {"message": "Bus Ticket Booking API is up"}
 
 @app.get("/init-db")
