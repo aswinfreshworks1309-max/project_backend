@@ -9,15 +9,17 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # --- AUTO-FIX LOGIC ---
-# If the backend is still using the old direct Supabase host, we force it to use the new Pooler URL
-# locally and on Vercel to prevent connection failures.
-if DATABASE_URL and "db.unyrqhgrzialltsdubow.supabase.co" in DATABASE_URL:
-    # Reconstructing the correct Pooler URL using the known password and project ref
-    DATABASE_URL = "postgresql://postgres.unyrqhgrzialltsdubow:AcademyRootPassword@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require"
+if DATABASE_URL:
+    # 1. Fix host if it's the old one
+    if "db.unyrqhgrzialltsdubow.supabase.co" in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace("db.unyrqhgrzialltsdubow.supabase.co", "aws-1-ap-south-1.pooler.supabase.com").replace(":5432", ":6543")
+    
+    # 2. Fix password typo if it exists in the current URL (Missing 'd')
+    if "AcademyRootPasswor" in DATABASE_URL and "AcademyRootPassword" not in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace("AcademyRootPasswor", "AcademyRootPassword")
 # ----------------------
 
 if not DATABASE_URL:
-    # Do not crash on import, allows checking root endpoint
     engine = None
     SessionLocal = None
 else:
