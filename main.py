@@ -8,10 +8,16 @@ load_dotenv()
  
 from app import models
 
+# Create tables on startup
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Error creating tables: {e}")
+
 app = FastAPI(title="Bus Ticket Booking API")
 
 
-@app.get("/")
+@app.get("/") 
 def root():
     return {"message": "Bus Ticket Booking API is up"}
 

@@ -11,3 +11,4 @@ class User(Base):
     full_name = Column(String, nullable=True)
     role = Column(String, default="user")
  
+ 
