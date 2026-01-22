@@ -10,6 +10,7 @@ from app.database import get_db
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+# Recap: Creates a new user with hashed password.
 @router.post("/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     hashed_password = auth.get_password_hash(user.password)
@@ -25,6 +26,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
+# Recap: Authenticates user and generates OAuth2 access token.
 @router.post("/token")
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == form_data.username).first()
@@ -37,11 +39,9 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     access_token = auth.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+# Recap: Authenticates user via JSON payload and returns token with user info.
 @router.post("/login")
 def login(user_credentials: schemas.UserCreate, db: Session = Depends(get_db)):
-    """
-    Alternative login endpoint for JSON payloads (Frontend compatibility).
-    """
     user = db.query(models.User).filter(models.User.email == user_credentials.email).first()
     
     if not user or not auth.verify_password(user_credentials.password, user.hashed_password):

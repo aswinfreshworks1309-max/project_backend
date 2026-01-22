@@ -11,6 +11,7 @@ router = APIRouter(
     dependencies=[Depends(auth.get_current_user)]
 )
 
+# Recap: Creates a new travel schedule.
 @router.post("/", response_model=schemas.Schedule)
 def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_db)):
     db_schedule = models.Schedule(**schedule.dict())
@@ -21,6 +22,7 @@ def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_
 
 from typing import Optional
 
+# Recap: Retrieves schedules, optionally filtered by source and destination.
 @router.get("/", response_model=List[schemas.Schedule])
 def read_schedules(skip: int = 0, limit: int = 100, source: Optional[str] = None, destination: Optional[str] = None, db: Session = Depends(get_db)):
     query = db.query(models.Schedule)
@@ -31,6 +33,7 @@ def read_schedules(skip: int = 0, limit: int = 100, source: Optional[str] = None
     schedules = query.offset(skip).limit(limit).all()
     return schedules
 
+# Recap: Retrieves specific schedule details by ID.
 @router.get("/{schedule_id}", response_model=schemas.Schedule)
 def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
     schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
@@ -38,6 +41,7 @@ def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Schedule not found")
     return schedule
 
+# Recap: Updates an existing schedule's information.
 @router.put("/{schedule_id}", response_model=schemas.Schedule)
 def update_schedule(schedule_id: int, schedule: schemas.ScheduleCreate, db: Session = Depends(get_db)):
     db_schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
@@ -51,6 +55,7 @@ def update_schedule(schedule_id: int, schedule: schemas.ScheduleCreate, db: Sess
     db.refresh(db_schedule)
     return db_schedule
 
+# Recap: Deletes a schedule and its related bookings, and resets bus seats.
 @router.delete("/{schedule_id}", status_code=204)
 def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
     # Check if schedule exists

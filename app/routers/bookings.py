@@ -11,6 +11,7 @@ router = APIRouter(
     dependencies=[Depends(auth.get_current_user)]
 )
 
+# Recap: Processes and creates a new booking while marking the seat as unavailable.
 @router.post("/", response_model=schemas.Booking)
 def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)):
     try:
@@ -43,6 +44,7 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating booking: {str(e)}")
 
+# Recap: Lists bookings with optional filtering by schedule or user.
 @router.get("/", response_model=List[schemas.Booking])
 def read_bookings(skip: int = 0, limit: int = 100, schedule_id: int = None, user_id: int = None, db: Session = Depends(get_db)):
     query = db.query(models.Booking)
@@ -53,6 +55,7 @@ def read_bookings(skip: int = 0, limit: int = 100, schedule_id: int = None, user
     bookings = query.offset(skip).limit(limit).all()
     return bookings
 
+# Recap: Retrieves a single booking record by its ID.
 @router.get("/{booking_id}", response_model=schemas.Booking)
 def read_booking(booking_id: int, db: Session = Depends(get_db)):
     booking = db.query(models.Booking).filter(models.Booking.id == booking_id).first()

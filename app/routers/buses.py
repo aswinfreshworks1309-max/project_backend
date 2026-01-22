@@ -10,6 +10,7 @@ router = APIRouter(
     dependencies=[Depends(auth.get_current_user)]
 )
 
+# Recap: Adds a new bus to the database.
 @router.post("/", response_model=schemas.Bus)
 def create_bus(bus: schemas.BusCreate, db: Session = Depends(get_db)):
     db_bus = models.Bus(**bus.dict())
@@ -18,11 +19,13 @@ def create_bus(bus: schemas.BusCreate, db: Session = Depends(get_db)):
     db.refresh(db_bus)
     return db_bus
 
+# Recap: Retrieves a list of all buses.
 @router.get("/", response_model=List[schemas.Bus])
 def read_buses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     buses = db.query(models.Bus).offset(skip).limit(limit).all()
     return buses
 
+# Recap: Retrieves details of a specific bus by its ID.
 @router.get("/{bus_id}", response_model=schemas.Bus)
 def read_bus(bus_id: int, db: Session = Depends(get_db)):
     bus = db.query(models.Bus).filter(models.Bus.id == bus_id).first()
