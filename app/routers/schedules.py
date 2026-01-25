@@ -23,6 +23,7 @@ def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_
 from typing import Optional
 
 # Recap: Retrieves schedules, optionally filtered by source and destination.
+# Need to recap Again
 @router.get("/", response_model=List[schemas.Schedule])
 def read_schedules(skip: int = 0, limit: int = 100, source: Optional[str] = None, destination: Optional[str] = None, db: Session = Depends(get_db)):
     query = db.query(models.Schedule)
@@ -32,6 +33,7 @@ def read_schedules(skip: int = 0, limit: int = 100, source: Optional[str] = None
         query = query.filter(models.Schedule.destination.ilike(f"%{destination}%"))
     schedules = query.offset(skip).limit(limit).all()
     return schedules
+
 
 # Recap: Retrieves specific schedule details by ID.
 @router.get("/{schedule_id}", response_model=schemas.Schedule)

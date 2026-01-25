@@ -17,34 +17,10 @@ except Exception as e:
 app = FastAPI(title="Bus Ticket Booking API")
 
 
+# Recap: Root endpoint to check if the API is running.
 @app.get("/") 
 def root():
     return {"message": "Bus Ticket Booking API is up"}
-
-@app.get("/init-db")
-def init_db():
-    from app.database import DATABASE_URL, engine, Base
-    if not DATABASE_URL:
-        return {"error": "DATABASE_URL environment variable is not set."}
-    
-    masked_url = DATABASE_URL.split("@")[-1] if "@" in DATABASE_URL else "URL set but Hidden"
-    
-    try:
-        if engine is None:
-            return {"error": "Engine is None. Database URL might be missing or invalid.", "detected_host": masked_url}
-            
-        Base.metadata.create_all(bind=engine)
-        return {
-            "message": "Database tables created successfully",
-            "host": masked_url
-        }
-    except Exception as e:
-        import traceback
-        return {
-            "error": str(e),
-            "trace": traceback.format_exc(),
-            "detected_host": masked_url
-        }
 
 from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
