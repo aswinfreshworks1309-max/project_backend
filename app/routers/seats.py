@@ -6,12 +6,11 @@ from app.database import get_db
 
 router = APIRouter(
     prefix="/seats", 
-    tags=["Seats"],
-    dependencies=[Depends(auth.get_current_user)]
+    tags=["Seats"]
 )
 
 # Recap: Creates a new seat entry in the database.
-@router.post("/", response_model=schemas.Seat)
+@router.post("/", response_model=schemas.Seat, dependencies=[Depends(auth.get_current_user)])
 def create_seat(seat: schemas.SeatCreate, db: Session = Depends(get_db)):
     db_seat = models.Seat(**seat.dict())
     db.add(db_seat)
@@ -57,7 +56,7 @@ def read_seats(skip: int = 0, limit: int = 100, bus_id: Optional[int] = None, db
 
 
 # Recap: Resets seat availability and deletes bookings for a specific schedule.
-@router.post("/reset/{schedule_id}")
+@router.post("/reset/{schedule_id}", dependencies=[Depends(auth.get_current_user)])
 def reset_seats(schedule_id: int, db: Session = Depends(get_db)):
     schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
     if not schedule:

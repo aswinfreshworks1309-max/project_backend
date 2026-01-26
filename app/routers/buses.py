@@ -6,12 +6,11 @@ from app.database import get_db
 
 router = APIRouter(
     prefix="/buses", 
-    tags=["Buses"],
-    dependencies=[Depends(auth.get_current_user)]
+    tags=["Buses"]
 )
 
 # Recap: Adds a new bus to the database.
-@router.post("/", response_model=schemas.Bus)
+@router.post("/", response_model=schemas.Bus, dependencies=[Depends(auth.get_current_user)])
 def create_bus(bus: schemas.BusCreate, db: Session = Depends(get_db)):
     db_bus = models.Bus(**bus.dict())
     db.add(db_bus)
