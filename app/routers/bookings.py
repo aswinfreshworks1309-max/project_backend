@@ -6,12 +6,11 @@ from app.database import get_db
 
 router = APIRouter(
     prefix="/bookings", 
-    tags=["Bookings"],
-    dependencies=[Depends(auth.get_current_user)]
+    tags=["Bookings"]
 )
 
 # Recap: Processes and creates a new booking while marking the seat as unavailable.
-@router.post("/", response_model=schemas.Booking)
+@router.post("/", response_model=schemas.Booking, dependencies=[Depends(auth.get_current_user)])
 def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)):
     try:
         # Check if seat is already booked for this schedule
