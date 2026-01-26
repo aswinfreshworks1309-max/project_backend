@@ -7,8 +7,7 @@ from app.database import get_db
 
 router = APIRouter(
     prefix="/payments", 
-    tags=["Payments"],
-    dependencies=[Depends(auth.get_current_user)]
+    tags=["Payments"]
 )
 
 # Recap: Registers a new payment transaction.

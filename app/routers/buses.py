@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 # Recap: Adds a new bus to the database.
-@router.post("/", response_model=schemas.Bus, dependencies=[Depends(auth.get_current_user)])
+@router.post("/", response_model=schemas.Bus)
 def create_bus(bus: schemas.BusCreate, db: Session = Depends(get_db)):
     db_bus = models.Bus(**bus.dict())
     db.add(db_bus)

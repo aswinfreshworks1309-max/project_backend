@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 # Recap: Creates a new travel schedule.
-@router.post("/", response_model=schemas.Schedule, dependencies=[Depends(auth.get_current_user)])
+@router.post("/", response_model=schemas.Schedule)
 def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_db)):
     db_schedule = models.Schedule(**schedule.dict())
     db.add(db_schedule)
@@ -43,7 +43,7 @@ def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
     return schedule
 
 # Recap: Updates an existing schedule's information.
-@router.put("/{schedule_id}", response_model=schemas.Schedule, dependencies=[Depends(auth.get_current_user)])
+@router.put("/{schedule_id}", response_model=schemas.Schedule)
 def update_schedule(schedule_id: int, schedule: schemas.ScheduleCreate, db: Session = Depends(get_db)):
     db_schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
     if db_schedule is None:
@@ -57,7 +57,7 @@ def update_schedule(schedule_id: int, schedule: schemas.ScheduleCreate, db: Sess
     return db_schedule
 
 # Recap: Deletes a schedule and its related bookings, and resets bus seats.
-@router.delete("/{schedule_id}", status_code=204, dependencies=[Depends(auth.get_current_user)])
+@router.delete("/{schedule_id}", status_code=204)
 def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
     # Check if schedule exists
     db_schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
