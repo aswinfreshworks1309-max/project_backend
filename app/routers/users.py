@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app import auth
-from fastapi.security import OAuth2PasswordRequestForm
-
 
 from app import models, schemas
 from app.database import get_db
@@ -26,19 +24,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-# Recap: Authenticates user and generates OAuth2 access token.
-@router.post("/token")
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == form_data.username).first()
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=401,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token = auth.create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
-
 # Recap: Authenticates user via JSON payload and returns token with user info.
 @router.post("/login")
 def login(user_credentials: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -60,3 +45,14 @@ def login(user_credentials: schemas.UserCreate, db: Session = Depends(get_db)):
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+# Recap: Retrieves the profile of the currently logged-in user.
+@router.get("/me", response_model=schemas.User)
+def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
+    return current_user
+
+# Recap: Retrieves a list of all users for admin review.
+@router.get("/", response_model=List[schemas.User])
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_admin)):
+    users = db.query(models.User).offset(skip).limit(limit).all()
+    return users

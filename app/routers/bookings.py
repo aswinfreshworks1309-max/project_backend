@@ -11,7 +11,7 @@ router = APIRouter(
 
 # Recap: Processes and creates a new booking while marking the seat as unavailable.
 @router.post("/", response_model=schemas.Booking)
-def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)):
+def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     try:
         # Check if seat is already booked for this schedule
         existing = db.query(models.Booking).filter(
@@ -44,19 +44,30 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
 
 # Recap: Lists bookings with optional filtering by schedule or user.
 @router.get("/", response_model=List[schemas.Booking])
-def read_bookings(skip: int = 0, limit: int = 100, schedule_id: int = None, user_id: int = None, db: Session = Depends(get_db)):
+def read_bookings(skip: int = 0, limit: int = 100, schedule_id: int = None, user_id: int = None, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     query = db.query(models.Booking)
+    
+    # If not admin, can only see their own bookings
+    if current_user.role != "admin":
+        query = query.filter(models.Booking.user_id == current_user.id)
+    elif user_id:
+        query = query.filter(models.Booking.user_id == user_id)
+        
     if schedule_id:
         query = query.filter(models.Booking.schedule_id == schedule_id)
-    if user_id:
-        query = query.filter(models.Booking.user_id == user_id)
+        
     bookings = query.offset(skip).limit(limit).all()
     return bookings
 
 # Recap: Retrieves a single booking record by its ID.
 @router.get("/{booking_id}", response_model=schemas.Booking)
-def read_booking(booking_id: int, db: Session = Depends(get_db)):
+def read_booking(booking_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     booking = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
     if booking is None:
         raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Check if user is owner or admin
+    if current_user.role != "admin" and booking.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to view this booking")
+        
     return booking

@@ -11,7 +11,7 @@ router = APIRouter(
 
 # Recap: Creates a new seat entry in the database.
 @router.post("/", response_model=schemas.Seat)
-def create_seat(seat: schemas.SeatCreate, db: Session = Depends(get_db)):
+def create_seat(seat: schemas.SeatCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_admin)):
     db_seat = models.Seat(**seat.dict())
     db.add(db_seat)
     db.commit()
@@ -20,7 +20,7 @@ def create_seat(seat: schemas.SeatCreate, db: Session = Depends(get_db)):
 
 # Recap: Retrieves seats for a bus; initializes them if they don't exist.
 @router.get("/", response_model=List[schemas.Seat])
-def read_seats(skip: int = 0, limit: int = 100, bus_id: Optional[int] = None, db: Session = Depends(get_db)):
+def read_seats(skip: int = 0, limit: int = 100, bus_id: Optional[int] = None, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     query = db.query(models.Seat)
     if bus_id:
         query = query.filter(models.Seat.bus_id == bus_id)
@@ -57,7 +57,7 @@ def read_seats(skip: int = 0, limit: int = 100, bus_id: Optional[int] = None, db
 
 # Recap: Resets seat availability and deletes bookings for a specific schedule.
 @router.post("/reset/{schedule_id}")
-def reset_seats(schedule_id: int, db: Session = Depends(get_db)):
+def reset_seats(schedule_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_admin)):
     schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")

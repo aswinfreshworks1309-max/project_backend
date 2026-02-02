@@ -12,7 +12,7 @@ router = APIRouter(
 
 # Recap: Registers a new payment transaction.
 @router.post("/", response_model=schemas.Payment)
-def create_payment(payment: schemas.PaymentCreate, db: Session = Depends(get_db)):
+def create_payment(payment: schemas.PaymentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     db_payment = models.Payment(**payment.dict())
     db.add(db_payment)
     db.commit()
@@ -21,6 +21,6 @@ def create_payment(payment: schemas.PaymentCreate, db: Session = Depends(get_db)
 
 # Recap: Retrieves a list of all payment records.
 @router.get("/", response_model=List[schemas.Payment])
-def read_payments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_payments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_admin)):
     payments = db.query(models.Payment).offset(skip).limit(limit).all()
     return payments

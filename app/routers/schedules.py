@@ -12,7 +12,7 @@ router = APIRouter(
 
 # Recap: Creates a new travel schedule.
 @router.post("/", response_model=schemas.Schedule)
-def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_db)):
+def create_schedule(schedule: schemas.ScheduleCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_admin)):
     db_schedule = models.Schedule(**schedule.dict())
     db.add(db_schedule)
     db.commit()
@@ -24,7 +24,7 @@ from typing import Optional
 # Recap: Retrieves schedules, optionally filtered by source and destination.
 # Need to recap Again
 @router.get("/", response_model=List[schemas.Schedule])
-def read_schedules(skip: int = 0, limit: int = 100, source: Optional[str] = None, destination: Optional[str] = None, db: Session = Depends(get_db)):
+def read_schedules(skip: int = 0, limit: int = 100, source: Optional[str] = None, destination: Optional[str] = None, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     query = db.query(models.Schedule)
     if source:
         query = query.filter(models.Schedule.source.ilike(f"%{source}%"))
@@ -36,7 +36,7 @@ def read_schedules(skip: int = 0, limit: int = 100, source: Optional[str] = None
 
 # Recap: Retrieves specific schedule details by ID.
 @router.get("/{schedule_id}", response_model=schemas.Schedule)
-def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
+def read_schedule(schedule_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
     if schedule is None:
         raise HTTPException(status_code=404, detail="Schedule not found")
@@ -44,7 +44,7 @@ def read_schedule(schedule_id: int, db: Session = Depends(get_db)):
 
 # Recap: Updates an existing schedule's information.
 @router.put("/{schedule_id}", response_model=schemas.Schedule)
-def update_schedule(schedule_id: int, schedule: schemas.ScheduleCreate, db: Session = Depends(get_db)):
+def update_schedule(schedule_id: int, schedule: schemas.ScheduleCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_admin)):
     db_schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
     if db_schedule is None:
         raise HTTPException(status_code=404, detail="Schedule not found")
@@ -58,7 +58,7 @@ def update_schedule(schedule_id: int, schedule: schemas.ScheduleCreate, db: Sess
 
 # Recap: Deletes a schedule and its related bookings, and resets bus seats.
 @router.delete("/{schedule_id}", status_code=204)
-def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
+def delete_schedule(schedule_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_admin)):
     # Check if schedule exists
     db_schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
     if db_schedule is None:
