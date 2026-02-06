@@ -11,11 +11,6 @@ router = APIRouter(prefix="/users", tags=["Users"])
 # Recap: Creates a new user with hashed password.
 @router.post("/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Check if user already exists
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-        
     hashed_password = auth.get_password_hash(user.password)
     db_user = models.User(
         name=user.name, 
