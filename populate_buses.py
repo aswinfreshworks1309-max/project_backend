@@ -193,10 +193,8 @@ def populate():
                     dep_time = datetime.now() + timedelta(hours=random.randint(1, 48), minutes=random.choice([0, 15, 30, 45]))
                     arr_time = dep_time + timedelta(hours=random.randint(1, 3))
                     
-                    # Generate price with two decimal places
-                    base_price = random.randint(price_range[0], price_range[1])
-                    cents = random.randint(0, 99) / 100.0
-                    price = round(base_price + cents, 2)
+                    # Generate price as a whole number
+                    price = random.randint(price_range[0], price_range[1])
                     
                     schedule = models.Schedule(
                         bus_id=new_bus.id,
@@ -204,7 +202,7 @@ def populate():
                         destination=end,
                         departure_time=dep_time,
                         arrival_time=arr_time,
-                        price=price,
+                        price=float(price),
                         available_seats=40,
                         status="Scheduled",
                         route_id=route_num
