@@ -8,8 +8,26 @@ from sqlalchemy.orm import Session
 # Add the current directory to sys.path so we can import from 'app'
 sys.path.append(os.getcwd())
 
-from app.database import SessionLocal, engine
-from app import models
+print("=" * 60)
+print("BUS POPULATION SCRIPT FOR RENDER DATABASE")
+print("=" * 60)
+
+try:
+    from app.database import SessionLocal, engine, Base
+    from app import models
+    print("✓ Imports successful")
+except Exception as e:
+    print(f"✗ Import error: {e}")
+    sys.exit(1)
+
+# Create all tables if they don't exist
+try:
+    print("Creating database tables if they don't exist...")
+    Base.metadata.create_all(bind=engine)
+    print("✓ Tables created/verified")
+except Exception as e:
+    print(f"✗ Error creating tables: {e}")
+    sys.exit(1)
 
 def generate_plate():
     letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -205,4 +223,16 @@ def populate():
     db.close()
 
 if __name__ == "__main__":
-    populate()
+    try:
+        populate()
+        print("\n" + "=" * 60)
+        print("✓ DATABASE POPULATION COMPLETED SUCCESSFULLY!")
+        print("=" * 60)
+    except Exception as e:
+        print("\n" + "=" * 60)
+        print("✗ ERROR DURING POPULATION:")
+        print(f"{e}")
+        print("=" * 60)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
