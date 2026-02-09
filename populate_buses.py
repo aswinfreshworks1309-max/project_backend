@@ -146,75 +146,90 @@ def populate():
 
     print(f"Starting population of {len(routes_data)} routes...")
 
+def populate():
+    print("Connecting to database...")
+    # Get database URL and ensure SSL for Render
+    db_url = os.getenv("DATABASE_URL")
+    if db_url and "render.com" in db_url and "sslmode=" not in db_url:
+        db_url += ("&" if "?" in db_url else "?") + "sslmode=require"
+    
+    # Re-initialize engine with updated URL if needed
+    from sqlalchemy import create_engine
+    temp_engine = create_engine(db_url)
+    db = Session(bind=temp_engine)
+    
+    print("Database connection successful!")
+    
+    # Limit to first 100 routes for 100 buses
+    subset_routes = routes_data[:100]
+    
+    print(f"Starting population of {len(subset_routes)} buses...")
+
     bus_count = 0
     sched_count = 0
     
-    # Batch size to avoid memory issues or transaction timeouts
-    batch_size = 50
-    
-    for i, (route_num, start, end, ord_range, del_range) in enumerate(routes_data):
-        # Create 5 Ordinary and 5 Deluxe buses for each route
-        types = [
-            ("Ordinary", ord_range, "LocoTranz Ordinary"),
-            ("Deluxe", del_range, "LocoTranz Deluxe")
-        ]
+    for i, (route_num, start, end, ord_range, del_range) in enumerate(subset_routes):
+        # Determine bus type and price range (alternating for variety)
+        if i % 2 == 0:
+            b_type, price_range, operator = "Ordinary", ord_range, "LocoTranz Ordinary"
+        else:
+            b_type, price_range, operator = "Deluxe", del_range, "LocoTranz Deluxe"
+
+        bus_label = f"BUS-{route_num}"
+        plate = generate_plate()
         
-        for b_type, price_range, operator in types:
-            for n in range(1, 6): # 5 buses each
-                bus_label = f"{route_num}-{b_type[0]}-{n}"
-                plate = generate_plate()
-                
-                # Check if bus already exists (unique constraint)
-                existing_bus = db.query(models.Bus).filter(models.Bus.bus_number == bus_label).first()
-                if not existing_bus:
-                    new_bus = models.Bus(
-                        bus_number=bus_label,
-                        plate_number=plate,
-                        bus_type=b_type,
-                        total_seats=40,
-                        operator_name=operator
-                    )
-                    db.add(new_bus)
-                    db.flush() # Get the bus ID
-                    
-                    # Create 40 seats for this bus
-                    seats_to_add = []
-                    for row in ['A', 'B', 'C', 'D']:
-                        for num in range(1, 11):
-                            seat = models.Seat(
-                                bus_id=new_bus.id,
-                                seat_label=f"{num}{row}",
-                                is_available=True
-                            )
-                            seats_to_add.append(seat)
-                    db.bulk_save_objects(seats_to_add)
-                    
-                    # Create a schedule for this bus
-                    dep_time = datetime.now() + timedelta(hours=random.randint(1, 48), minutes=random.choice([0, 15, 30, 45]))
-                    arr_time = dep_time + timedelta(hours=random.randint(1, 3))
-                    
-                    # Generate price as a whole number
-                    price = random.randint(price_range[0], price_range[1])
-                    
-                    schedule = models.Schedule(
+        # Check if bus already exists
+        existing_bus = db.query(models.Bus).filter(models.Bus.bus_number == bus_label).first()
+        if not existing_bus:
+            new_bus = models.Bus(
+                bus_number=bus_label,
+                plate_number=plate,
+                bus_type=b_type,
+                total_seats=40,
+                operator_name=operator
+            )
+            db.add(new_bus)
+            db.flush()
+            
+            # Create 40 seats
+            seats_to_add = []
+            for row in ['A', 'B', 'C', 'D']:
+                for num in range(1, 11):
+                    seat = models.Seat(
                         bus_id=new_bus.id,
-                        source=start,
-                        destination=end,
-                        departure_time=dep_time,
-                        arrival_time=arr_time,
-                        price=float(price),
-                        available_seats=40,
-                        status="Scheduled",
-                        route_id=route_num
+                        seat_label=f"{num}{row}",
+                        is_available=True
                     )
-                    db.add(schedule)
-                    
-                    bus_count += 1
-                    sched_count += 1
+                    seats_to_add.append(seat)
+            db.bulk_save_objects(seats_to_add)
+            
+            # Create a schedule
+            dep_time = datetime.now() + timedelta(hours=random.randint(1, 48), minutes=random.choice([0, 15, 30, 45]))
+            arr_time = dep_time + timedelta(hours=random.randint(1, 3))
+            
+            # WHOLE NUMBER PRICE
+            price = random.randint(price_range[0], price_range[1])
+            
+            schedule = models.Schedule(
+                bus_id=new_bus.id,
+                source=start,
+                destination=end,
+                departure_time=dep_time,
+                arrival_time=arr_time,
+                price=float(price),
+                available_seats=40,
+                status="Scheduled",
+                route_id=route_num
+            )
+            db.add(schedule)
+            
+            bus_count += 1
+            sched_count += 1
         
-        # Commit every batch of routes
-        db.commit()
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Processed route {route_num} ({i+1}/{len(routes_data)})")
+        # Commit every 10 buses
+        if bus_count % 10 == 0:
+            db.commit()
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Added {bus_count} buses...")
 
     db.commit()
     print(f"Finished! Total buses added: {bus_count}, Total schedules added: {sched_count}")
