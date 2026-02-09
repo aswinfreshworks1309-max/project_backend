@@ -16,7 +16,12 @@ def generate_plate():
     return f"TN{random.randint(10, 99)} {random.choice(letters)}{random.choice(letters)} {random.randint(1000, 9999)}"
 
 def populate():
+    print("=" * 50)
+    print("Starting bus population script...")
+    print("=" * 50)
+    print("Attempting database connection...")
     db = SessionLocal()
+    print("Database connection successful!")
     
     routes_data = [
         ("1", "Broadway", "Thiruvotriyur", (5, 12), (11, 25)),
@@ -170,7 +175,10 @@ def populate():
                     dep_time = datetime.now() + timedelta(hours=random.randint(1, 48), minutes=random.choice([0, 15, 30, 45]))
                     arr_time = dep_time + timedelta(hours=random.randint(1, 3))
                     
-                    price = random.randint(price_range[0], price_range[1])
+                    # Generate price with two decimal places
+                    base_price = random.randint(price_range[0], price_range[1])
+                    cents = random.randint(0, 99) / 100.0
+                    price = round(base_price + cents, 2)
                     
                     schedule = models.Schedule(
                         bus_id=new_bus.id,
@@ -178,7 +186,7 @@ def populate():
                         destination=end,
                         departure_time=dep_time,
                         arrival_time=arr_time,
-                        price=float(price),
+                        price=price,
                         available_seats=40,
                         status="Scheduled",
                         route_id=route_num
