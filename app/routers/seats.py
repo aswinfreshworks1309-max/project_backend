@@ -65,8 +65,11 @@ def reset_seats(schedule_id: int, db: Session = Depends(get_db), current_user: m
     # 1. Delete all bookings for this schedule
     db.query(models.Booking).filter(models.Booking.schedule_id == schedule_id).delete()
     
-    # 2. Reset seat availability for the bus
-    db.query(models.Seat).filter(models.Seat.bus_id == schedule.bus_id).update({"is_available": True})
+    # 2. Reset available_seats in schedule based on bus total_seats
+    bus = db.query(models.Bus).filter(models.Bus.id == schedule.bus_id).first()
+    if bus:
+        schedule.available_seats = bus.total_seats
+        db.add(schedule)
     
     db.commit()
     return {"message": "Seats and bookings reset successfully"}

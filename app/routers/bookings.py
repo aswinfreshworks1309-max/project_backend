@@ -25,11 +25,11 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
                 detail=f"Seat {booking.seat_id} is already booked for this schedule"
             )
         
-        # Update seat availability
-        seat = db.query(models.Seat).filter(models.Seat.id == booking.seat_id).first()
-        if seat:
-            seat.is_available = False
-            db.add(seat)
+        # Update schedule available seats count
+        schedule = db.query(models.Schedule).filter(models.Schedule.id == booking.schedule_id).first()
+        if schedule and schedule.available_seats > 0:
+            schedule.available_seats -= 1
+            db.add(schedule)
         
         db_booking = models.Booking(**booking.dict())
         db.add(db_booking)
@@ -47,14 +47,14 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
 def read_bookings(skip: int = 0, limit: int = 100, schedule_id: int = None, user_id: int = None, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     query = db.query(models.Booking)
     
-    # If not admin, can only see their own bookings
-    if current_user.role != "admin":
+    # If schedule_id is provided, we allow seeing all bookings for that schedule (to check seat availability)
+    # Otherwise, non-admins can only see their own bookings
+    if schedule_id:
+        query = query.filter(models.Booking.schedule_id == schedule_id)
+    elif current_user.role != "admin":
         query = query.filter(models.Booking.user_id == current_user.id)
     elif user_id:
         query = query.filter(models.Booking.user_id == user_id)
-        
-    if schedule_id:
-        query = query.filter(models.Booking.schedule_id == schedule_id)
         
     bookings = query.offset(skip).limit(limit).all()
     return bookings
