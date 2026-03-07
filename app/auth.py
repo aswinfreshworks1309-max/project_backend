@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt
@@ -8,33 +7,28 @@ import os
 from app import models
 from app.database import get_db
 
-# Password hashing setup
-# Argon2 is a secure algorithm for hashing passwords
+ 
+ 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-# Helper function to check if a password matches its hash
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password, hashed_password):    #password checking
     return pwd_context.verify(plain_password, hashed_password)
 
-# Helper function to create a secure hash of a password
-def get_password_hash(password):
+
+def get_password_hash(password):     #password hashing
     return pwd_context.hash(password)
 
-# Secret key used to sign the tokens (should be kept safe!)
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 
-# Security scheme to handle Bearer tokens
 security = HTTPBearer()
 
-# Function to create a new login token (JWT)
-def create_access_token(data: dict):
+def create_access_token(data: dict):  #JWT token creation
     to_encode = data.copy()
-    # We create a token that stays valid (no expiration for simplicity)
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
-# Function to get the current user based on the provided token
+ 
 def get_current_user(auth: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
     token = auth.credentials # Get the token from the request
     

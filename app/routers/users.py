@@ -2,13 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app import auth
-
 from app import models, schemas
 from app.database import get_db
-
 router = APIRouter(prefix="/users", tags=["Users"])
 
-# 1. Sign Up Endpoint: Creates a new user in the database
+
 @router.post("/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # First, hash the password so it isn't stored in plain text
