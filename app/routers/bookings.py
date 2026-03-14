@@ -53,7 +53,7 @@ def create_booking(
         raise HTTPException(status_code=500, detail=f"Error creating booking: {str(e)}")
 
 
-# Recap: Lists bookings with optional filtering by schedule or user.
+# Lists bookings with optional filtering by schedule or user.
 @router.get("/", response_model=List[schemas.Booking])
 def read_bookings(
     skip: int = 0,
@@ -78,7 +78,7 @@ def read_bookings(
     return bookings
 
 
-# Recap: Retrieves a single booking record by its ID.
+# Retrieves a single booking record by its ID.
 @router.get("/{booking_id}", response_model=schemas.Booking)
 def read_booking(
     booking_id: int,
