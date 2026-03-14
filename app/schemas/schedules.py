@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+
 class ScheduleBase(BaseModel):
     bus_id: int
     route_id: str
@@ -13,8 +14,10 @@ class ScheduleBase(BaseModel):
     available_seats: int
     status: Optional[str] = "Scheduled"
 
+
 class ScheduleCreate(ScheduleBase):
     pass
+
 
 class Schedule(ScheduleBase):
     id: int

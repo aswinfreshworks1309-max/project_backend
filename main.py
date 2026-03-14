@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 from app.database import Base, engine
 from app.routers import router as api_router
 import os
+
 load_dotenv()
- 
+
 from app import models
 
 # Create tables on startup
@@ -18,11 +19,13 @@ app = FastAPI(title="Bus Ticket Booking API")
 
 
 # Recap: Root endpoint to check if the API is running.
-@app.get("/") 
+@app.get("/")
 def root():
     return {"message": "Bus Ticket Booking API is up"}
 
+
 from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,5 +34,3 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(api_router)
-
-

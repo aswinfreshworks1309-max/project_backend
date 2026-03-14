@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 class BusBase(BaseModel):
     bus_number: str
     plate_number: str
@@ -8,8 +9,10 @@ class BusBase(BaseModel):
     total_seats: int
     operator_name: str
 
+
 class BusCreate(BusBase):
     pass
+
 
 class Bus(BusBase):
     id: int

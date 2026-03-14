@@ -4,29 +4,42 @@ from typing import List
 from app import models, schemas, auth
 from app.database import get_db
 
-router = APIRouter(
-    prefix="/buses", 
-    tags=["Buses"]
-)
+router = APIRouter(prefix="/buses", tags=["Buses"])
+
 
 # Adds a new bus to the database.
 @router.post("/", response_model=schemas.Bus)
-def create_bus(bus: schemas.BusCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_admin)):
+def create_bus(
+    bus: schemas.BusCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_admin),
+):
     db_bus = models.Bus(**bus.dict())
     db.add(db_bus)
     db.commit()
     db.refresh(db_bus)
     return db_bus
 
+
 # Retrieves a list of all buses.
 @router.get("/", response_model=List[schemas.Bus])
-def read_buses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+def read_buses(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
     buses = db.query(models.Bus).offset(skip).limit(limit).all()
     return buses
 
+
 # Retrieves details of a specific bus by its ID.
 @router.get("/{bus_id}", response_model=schemas.Bus)
-def read_bus(bus_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+def read_bus(
+    bus_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
     bus = db.query(models.Bus).filter(models.Bus.id == bus_id).first()
     if bus is None:
         raise HTTPException(status_code=404, detail="Bus not found")

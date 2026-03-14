@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from app.database import Base
 
+
 class Seat(Base):
     __tablename__ = "seats"
 

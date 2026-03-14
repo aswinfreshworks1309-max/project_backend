@@ -7,15 +7,15 @@ import os
 from app import models
 from app.database import get_db
 
- 
- 
+
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-def verify_password(plain_password, hashed_password):    #password checking
+
+def verify_password(plain_password, hashed_password):  # password checking
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password):     #password hashing
+def get_password_hash(password):  # password hashing
     return pwd_context.hash(password)
 
 
@@ -24,21 +24,26 @@ ALGORITHM = "HS256"
 
 security = HTTPBearer()
 
-def create_access_token(data: dict):  #JWT token creation
+
+def create_access_token(data: dict):  # JWT token creation
     to_encode = data.copy()
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
- 
-def get_current_user(auth: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
-    token = auth.credentials # Get the token from the request
-    
+
+
+def get_current_user(
+    auth: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    token = auth.credentials  # Get the token from the request
+
     # Error to show if login fails
     error_response = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Login required or session expired",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     try:
         # Decode the token to find the user's email
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -48,13 +53,14 @@ def get_current_user(auth: HTTPAuthorizationCredentials = Depends(security), db:
     except jwt.JWTError:
         # If token is invalid or broken
         raise error_response
-    
+
     # Find the user in the database
     user = db.query(models.User).filter(models.User.email == email).first()
     if user is None:
         raise error_response
-        
+
     return user
+
 
 # Function to check if the current user is an Admin
 def get_current_admin(current_user: models.User = Depends(get_current_user)):
@@ -62,6 +68,6 @@ def get_current_admin(current_user: models.User = Depends(get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to perform this action"
+            detail="You do not have permission to perform this action",
         )
     return current_user
