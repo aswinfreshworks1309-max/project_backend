@@ -21,7 +21,7 @@ def create_seat(
     return db_seat
 
 
-# Recap: Retrieves seats for a bus; initializes them if they don't exist.
+#  Retrieves seats for a bus; initializes them if they don't exist.
 @router.get("/", response_model=List[schemas.Seat])
 def read_seats(
     skip: int = 0,

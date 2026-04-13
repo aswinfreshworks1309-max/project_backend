@@ -21,6 +21,8 @@ def create_bus(
     return db_bus
 
 
+
+
 # Retrieves a list of all buses.
 @router.get("/", response_model=List[schemas.Bus])
 def read_buses(
