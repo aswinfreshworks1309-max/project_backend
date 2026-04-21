@@ -14,7 +14,7 @@ def create_bus(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin),
 ):
-    db_bus = models.Bus(**bus.dict())
+    db_bus = models.Bus(**bus.model_dump())
     db.add(db_bus)
     db.commit()
     db.refresh(db_bus)

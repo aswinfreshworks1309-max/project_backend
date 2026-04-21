@@ -7,7 +7,8 @@ from app.database import get_db
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
 
-# Recap: Processes and creates a new booking while marking the seat as unavailable.
+# Processes and creates a new booking while marking the seat as unavailable.
+
 @router.post("/", response_model=schemas.Booking)
 def create_booking(
     booking: schemas.BookingCreate,
@@ -90,6 +91,7 @@ def read_booking(
         raise HTTPException(status_code=404, detail="Booking not found")
 
     # Check if user is owner or admin
+    
     if current_user.role != "admin" and booking.user_id != current_user.id:
         raise HTTPException(
             status_code=403, detail="Not authorized to view this booking"
